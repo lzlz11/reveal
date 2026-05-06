@@ -1,6 +1,6 @@
 import bcrypt
 from flask import Blueprint, request, render_template, redirect, url_for, make_response
-from models.user import get_user_by_email, create_user, email_exists, username_exists
+from models.user import get_user_by_email, create_user, email_exists, username_exists, get_user_by_username
 from middleware.auth import generate_token
 
 auth_bp = Blueprint('auth', __name__)
@@ -27,7 +27,9 @@ def login():
 
     user = get_user_by_email(email)
     if not user:
-        return render_template('auth/login.html', error=error)
+        user = get_user_by_username(email)
+        if not user:
+            return render_template('auth/login.html', error=error)
 
     password_matches = bcrypt.checkpw(password.encode(), user['password_hash'].encode())
     if not password_matches:

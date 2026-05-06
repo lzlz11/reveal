@@ -12,7 +12,7 @@ def follow(user_id):
     Toggle follow/unfollow for the given user.
     Returns JSON: { "following": true }
     """
-    if user_id == request.user_id:
+    if int(user_id) == int(request.user_id):
         return jsonify({'error': 'You cannot follow yourself.'}), 400
 
     result = toggle_follow(follower_id=request.user_id, following_id=user_id)

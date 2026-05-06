@@ -293,6 +293,15 @@
                         <a href="/users/{{ post['username'] }}" class="post-author">{{ post['username'] }}</a>
                         <div class="post-date">{{ post['created_at'].strftime('%B %d, %Y · %H:%M') }}</div>
                     </div>
+                    {% if post['user_id'] != current_user_id %}
+                        {% set already_following = post['user_id'] in followed_ids %}
+                        <button
+                            class="post-follow-btn {% if already_following %}following{% endif %}"
+                            data-user-id="{{ post['user_id'] }}"
+                        >
+                            {{ 'Unfollow' if already_following else 'Follow' }}
+                        </button>
+                    {% endif %}
                 </div>
 
                 {% if post['media_type'] == 'image' %}
@@ -366,7 +375,7 @@
             </div>
             {% endfor %}
         {% else %}
-            <p style="font-size:13px;color:var(--muted)"></p>
+            <p style="font-size:13px;color:var(--muted)">No suggestions yet.</p>
         {% endif %}
     </aside>
 
@@ -609,8 +618,10 @@ async function toggleFollow(userId) {
 function updateAllFollowBtns(userId, following) {
     // Update every button on the page for this user (post card + sidebar)
     document.querySelectorAll(`[data-user-id="${userId}"]`).forEach(btn => {
+        const isSidebar = btn.classList.contains('sidebar-follow-btn');
         if (following) {
-            btn.textContent = 'Following';
+            // Post buttons say "Unfollow", sidebar buttons say "Following"
+            btn.textContent = isSidebar ? 'Following' : 'Unfollow';
             btn.classList.add('following');
         } else {
             btn.textContent = 'Follow';

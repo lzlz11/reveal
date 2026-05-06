@@ -2,7 +2,6 @@ from config import get_db
 
 
 def get_user_by_email(email):
-    """Fetch a single user by email. Returns a dict or None."""
     db = get_db()
     cursor = db.cursor()
     cursor.execute("SELECT * FROM users WHERE email = %s", (email,))
@@ -10,7 +9,6 @@ def get_user_by_email(email):
 
 
 def get_user_by_username(username):
-    """Fetch a single user by username. Returns a dict or None."""
     db = get_db()
     cursor = db.cursor()
     cursor.execute("SELECT * FROM users WHERE name = %s", (username,))
@@ -18,10 +16,6 @@ def get_user_by_username(username):
 
 
 def create_user(name, email, password_hash):
-    """
-    Insert a new user into the database.
-    Returns the newly created user's id.
-    """
     db = get_db()
     cursor = db.cursor()
     cursor.execute(
@@ -37,7 +31,6 @@ def create_user(name, email, password_hash):
 
 
 def email_exists(email):
-    """Check if an email is already registered."""
     db = get_db()
     cursor = db.cursor()
     cursor.execute("SELECT 1 FROM users WHERE email = %s", (email,))
@@ -45,7 +38,6 @@ def email_exists(email):
 
 
 def username_exists(name):
-    """Check if a username is already taken."""
     db = get_db()
     cursor = db.cursor()
     cursor.execute("SELECT 1 FROM users WHERE name = %s", (name,))
