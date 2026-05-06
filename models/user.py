@@ -1,6 +1,23 @@
 from config import get_db
 
 
+def get_user_by_id(user_id):
+    db = get_db()
+    cursor = db.cursor()
+    cursor.execute("SELECT * FROM users WHERE id = %s", (user_id,))
+    return cursor.fetchone()
+
+
+def update_profile_picture(user_id, path):
+    db = get_db()
+    cursor = db.cursor()
+    cursor.execute(
+        "UPDATE users SET profile_picture_path = %s WHERE id = %s",
+        (path, user_id)
+    )
+    db.commit()
+
+
 def get_user_by_email(email):
     db = get_db()
     cursor = db.cursor()

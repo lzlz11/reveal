@@ -69,6 +69,23 @@ def get_users_by_ids(user_ids):
     order = {uid: i for i, uid in enumerate(user_ids)}
     return sorted(rows, key=lambda r: order[r['id']])
 
+def get_following_users(user_id):
+    """
+    Return the full list of users that user_id is following,
+    with enough info to render each card (id, username, profile picture).
+    """
+    db = get_db()
+    cursor = db.cursor()
+    cursor.execute("""
+        SELECT u.id, u.name AS username, u.profile_picture_path
+        FROM users u
+        JOIN follows f ON u.id = f.user2_id
+        WHERE f.user1_id = %s
+        ORDER BY u.name ASC
+    """, (user_id,))
+    return cursor.fetchall()
+
+
 
 def get_followed_ids(user_id):
     """

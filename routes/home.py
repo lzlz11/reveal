@@ -39,7 +39,7 @@ def home():
     # (so the follow button renders correctly on page load)
     followed_ids = get_followed_ids(request.user_id)
 
-    return render_template('home/home.html',
+    return render_template('home.html',
         username=request.username,
         current_user_id=request.user_id,
         posts=posts,

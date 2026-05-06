@@ -18,6 +18,6 @@ You also need to create three folder under the static folder, like this architec
 static <br>
  └──uploads <br>
    ├──images<br>
-   ├──profile_pictures<br>
+   ├──avatars<br>
    └──videos<br>
 All the media of the application will be stored in these folders. So there will be stored inside the project. In a real project it would have been better to save theme inside a could service.
