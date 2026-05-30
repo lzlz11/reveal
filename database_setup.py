@@ -65,7 +65,7 @@ cursor.execute("""
 ALTER TABLE comments
 ADD COLUMN IF NOT EXISTS text TEXT,
 ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-ADD COLUMN IF NOT EXISTS comment_parent_id INTEGER;
+ADD COLUMN IF NOT EXISTS comment_parent_id INTEGER REFERENCES comments(id) ON DELETE CASCADE;
 """)
 
 # ======================

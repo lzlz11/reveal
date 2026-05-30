@@ -30,3 +30,25 @@ def post_comment(post_id):
         text=text
     )
     return jsonify(comment), 201
+
+
+@comments_bp.route('/posts/<int:post_id>/comments/<int:comment_id>/reply', methods=['POST'])
+@require_auth
+def reply_comment(post_id, comment_id):
+    data = request.get_json()
+    text = data.get('text', '').strip() if data else ''
+
+    if not text:
+        return jsonify({'error': 'Reply cannot be empty.'}), 400
+
+    if len(text) > 1000:
+        return jsonify({'error': 'Reply is too long.'}), 400
+
+    reply = add_comment(
+        user_id=request.user_id,
+        post_id=post_id,
+        text=text,
+        parent_id=comment_id
+    )
+
+    return jsonify(reply), 201
