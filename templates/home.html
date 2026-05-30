@@ -290,7 +290,7 @@
                         <div class="avatar-letter">{{ post['username'][0] }}</div>
                     {% endif %}
                     <div class="post-meta">
-                        <a href="/users/{{ post['username'] }}" class="post-author">{{ post['username'] }}</a>
+                        <a href="/users/{{ post['user_id'] }}" class="post-author">{{ post['username'] }}</a>
                         <div class="post-date">{{ post['created_at'].strftime('%B %d, %Y · %H:%M') }}</div>
                     </div>
                     {% if post['user_id'] != current_user_id %}

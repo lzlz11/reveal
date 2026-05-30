@@ -67,3 +67,13 @@ def get_comments_by_post(post_id):
     ]
 
     return build_comment_tree(formatted)
+
+
+def comment_belongs_to_post(comment_id, post_id):
+    db = get_db()
+    cursor = db.cursor()
+    cursor.execute("""
+        SELECT 1 FROM comments
+        WHERE id = %s AND post_id = %s
+    """, (comment_id, post_id))
+    return cursor.fetchone() is not None

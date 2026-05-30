@@ -2,7 +2,7 @@ import os
 import uuid
 from flask import Blueprint, jsonify, request, render_template, redirect, url_for, current_app
 from middleware.auth import require_auth
-from models.follow import toggle_follow, get_following_users
+from models.follow import toggle_follow, get_following_users, get_followers_count, get_following_count, is_following
 from models.user import get_user_by_id, update_profile_picture
 from models.post import get_posts_by_user_id
 
@@ -21,9 +21,11 @@ def profile():
         user=user,
         following=following,
         posts=posts,
-        followers_count=0,
-        following_count=len(following),
-        current_username=request.username
+        followers_count=get_followers_count(request.user_id),
+        following_count=get_following_count(request.user_id),
+        current_username=request.username,
+        is_own_profile=True,
+        is_following_user=False
     )
 
 @users_bp.route('/users/<int:user_id>/follow', methods=['POST'])
@@ -57,12 +59,19 @@ def upload_picture():
 
     ext = file.filename.rsplit('.', 1)[-1].lower() if '.' in file.filename else ''
     if ext not in ALLOWED_IMAGES:
-        return render_template('users/profile.html',
-                               user=get_user_by_id(request.user_id),
-                               following=get_following_users(request.user_id),
-                               current_username=request.username,
-                               error='Unsupported file type. Allowed: jpg, png, gif, webp.'
-                               )
+        following = get_following_users(request.user_id)
+        return render_template(
+            'users/profile.html',
+            user=get_user_by_id(request.user_id),
+            following=following,
+            posts=get_posts_by_user_id(request.user_id),
+            followers_count=get_followers_count(request.user_id),
+            following_count=get_following_count(request.user_id),
+            current_username=request.username,
+            is_own_profile=True,
+            is_following_user=False,
+            error='Unsupported file type. Allowed: jpg, png, gif, webp.'
+        )
 
     filename = f"{uuid.uuid4().hex}.{ext}"
     relative_path = f"uploads/avatars/{filename}"
@@ -73,3 +82,28 @@ def upload_picture():
 
     update_profile_picture(request.user_id, relative_path)
     return redirect(url_for('users.profile'))
+
+
+
+@users_bp.route('/users/<int:user_id>')
+@require_auth
+def public_profile(user_id):
+    user = get_user_by_id(user_id)
+
+    if not user:
+        return "User not found", 404
+
+    posts = get_posts_by_user_id(user_id)
+    following = get_following_users(user_id)
+
+    return render_template(
+        'users/profile.html',
+        user=user,
+        following=following,
+        posts=posts,
+        followers_count=get_followers_count(user_id),
+        following_count=get_following_count(user_id),
+        current_username=request.username,
+        is_own_profile=int(user_id) == int(request.user_id),
+        is_following_user=is_following(request.user_id, user_id)
+    )

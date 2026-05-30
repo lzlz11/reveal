@@ -59,7 +59,13 @@
     #picture-input { display: none; }
 
     .profile-info { flex: 1; }
-    .profile-username { font-size: 24px; font-weight: 300; color: var(--text); margin-bottom: 16px; }
+    .profile-username { font-size: 24px; font-weight: 300; color: var(--text); }
+    .profile-top-row { display: flex; align-items: center; gap: 16px; margin-bottom: 16px; }
+    .profile-follow-btn { padding: 7px 18px; border: 1px solid var(--border); border-radius: 8px; color: var(--accent);
+    background: none; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; transition: background 0.2s, color 0.2s, border-color 0.2s;}
+    .profile-follow-btn:hover { background: rgba(232,197,71,0.08); }
+    .profile-follow-btn.following { color: var(--muted); }
+    .profile-follow-btn.following:hover { border-color: var(--error); color: var(--error); }
 
     /* Stats row — posts / followers / following */
     .stats-row { display: flex; gap: 28px; margin-bottom: 16px; }
@@ -218,7 +224,16 @@
         </form>
 
         <div class="profile-info">
-            <div class="profile-username">{{ user['name'] }}</div>
+            <div class="profile-top-row">
+                <div class="profile-username">{{ user['name'] }}</div>
+
+                {% if not is_own_profile %}
+                    <button class="profile-follow-btn {% if is_following_user %}following{% endif %}"
+                            data-user-id="{{ user['id'] }}">
+                        {{ 'Unfollow' if is_following_user else 'Follow' }}
+                    </button>
+                {% endif %}
+            </div>
 
             <div class="stats-row">
                 <div class="stat-btn">
@@ -226,7 +241,7 @@
                     <span class="stat-label">posts</span>
                 </div>
                 <div class="stat-btn">
-                    <span class="stat-number">{{ followers_count }}</span>
+                    <span class="stat-number" id="followers-count-display">{{ followers_count }}</span>
                     <span class="stat-label">followers</span>
                 </div>
                 <!-- Clicking "following" opens the modal -->
@@ -401,6 +416,28 @@ document.querySelectorAll('.row-unfollow').forEach(btn => {
             }
         } catch {
             console.error('Unfollow failed');
+        }
+    });
+});
+
+document.querySelectorAll('.profile-follow-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+        const userId = btn.dataset.userId;
+
+        try {
+            const res = await fetch(`/users/${userId}/follow`, { method: 'POST' });
+            const data = await res.json();
+
+            btn.classList.toggle('following', data.following);
+            btn.textContent = data.following ? 'Unfollow' : 'Follow';
+
+            const followersEl = document.getElementById('followers-count-display');
+            if (followersEl) {
+                const current = parseInt(followersEl.textContent);
+                followersEl.textContent = current + (data.following ? 1 : -1);
+            }
+        } catch {
+            console.error('Follow failed');
         }
     });
 });
