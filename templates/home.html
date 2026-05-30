@@ -304,11 +304,13 @@
                     {% endif %}
                 </div>
 
-                {% if post['media_type'] == 'image' %}
-                    <img class="post-media" src="{{ url_for('static', filename=post['media_path']) }}" alt="Post by {{ post['username'] }}" loading="lazy">
-                {% elif post['media_type'] == 'video' %}
-                    <video class="post-media" src="{{ url_for('static', filename=post['media_path']) }}" controls preload="metadata"></video>
-                {% endif %}
+                <a href="/posts/{{ post['id'] }}">
+                    {% if post['media_type'] == 'image' %}
+                        <img class="post-media" src="{{ url_for('static', filename=post['media_path']) }}" alt="Post by {{ post['username'] }}" loading="lazy">
+                    {% elif post['media_type'] == 'video' %}
+                        <video class="post-media" src="{{ url_for('static', filename=post['media_path']) }}" controls preload="metadata"></video>
+                    {% endif %}
+                </a>
 
                 <div class="post-body">
                     {% if post['caption'] %}

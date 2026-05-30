@@ -1,0 +1,17 @@
+{% extends "layout.html" %}
+{% block title %}Edit Post{% endblock %}
+
+{% block content %}
+<div style="max-width: 600px; margin: 80px auto; padding: 24px;">
+    <h1>Edit Post</h1>
+
+    <form method="POST" action="/posts/{{ post['id'] }}/edit">
+        <label for="caption">Caption</label>
+        <textarea id="caption" name="caption" maxlength="2200" style="width:100%; min-height:140px;">{{ post['caption'] }}</textarea>
+
+        <button type="submit">Save Changes</button>
+    </form>
+
+    <a href="/posts/{{ post['id'] }}">Cancel</a>
+</div>
+{% endblock %}

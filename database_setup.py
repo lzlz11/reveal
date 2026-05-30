@@ -11,8 +11,6 @@ connection = psycopg2.connect(host=os.getenv("DB_HOST"),
 
 
 cursor = connection.cursor()
-
-
 # ======================
 # USERS
 # ======================

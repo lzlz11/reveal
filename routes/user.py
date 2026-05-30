@@ -4,7 +4,7 @@ from flask import Blueprint, jsonify, request, render_template, redirect, url_fo
 from middleware.auth import require_auth
 from models.follow import toggle_follow, get_following_users
 from models.user import get_user_by_id, update_profile_picture
-
+from models.post import get_posts_by_user_id
 
 users_bp = Blueprint('users', __name__)
 ALLOWED_IMAGES = {'jpg', 'jpeg', 'png', 'gif', 'webp'}
@@ -12,15 +12,19 @@ ALLOWED_IMAGES = {'jpg', 'jpeg', 'png', 'gif', 'webp'}
 @users_bp.route('/profile')
 @require_auth
 def profile():
-    """The current user's own profile page."""
-    user       = get_user_by_id(request.user_id)
-    following  = get_following_users(request.user_id)
-    return render_template('users/profile.html',
+    user = get_user_by_id(request.user_id)
+    following = get_following_users(request.user_id)
+    posts = get_posts_by_user_id(request.user_id)
+
+    return render_template(
+        'users/profile.html',
         user=user,
         following=following,
+        posts=posts,
+        followers_count=0,
+        following_count=len(following),
         current_username=request.username
     )
-
 
 @users_bp.route('/users/<int:user_id>/follow', methods=['POST'])
 @require_auth

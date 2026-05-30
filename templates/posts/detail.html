@@ -1,0 +1,29 @@
+{% extends "layout.html" %}
+{% block title %}Post Detail{% endblock %}
+
+{% block content %}
+<div style="max-width: 700px; margin: 80px auto; padding: 24px;">
+    <a href="/home">Back</a>
+
+    <h2>{{ post['username'] }}</h2>
+    <p>{{ post['created_at'].strftime('%B %d, %Y · %H:%M') }}</p>
+
+    {% if post['media_type'] == 'image' %}
+        <img src="{{ url_for('static', filename=post['media_path']) }}" style="width:100%; max-height:700px; object-fit:cover;">
+    {% elif post['media_type'] == 'video' %}
+        <video src="{{ url_for('static', filename=post['media_path']) }}" controls style="width:100%;"></video>
+    {% endif %}
+
+    <p>{{ post['caption'] }}</p>
+
+    <p>{{ post['like_count'] }} likes · {{ post['comment_count'] }} comments</p>
+
+    {% if post['user_id']|int == current_user_id|int %}
+        <a href="/posts/{{ post['id'] }}/edit">Edit</a>
+
+        <form method="POST" action="/posts/{{ post['id'] }}/delete" style="display:inline;">
+            <button type="submit" onclick="return confirm('Delete this post?')">Delete</button>
+        </form>
+    {% endif %}
+</div>
+{% endblock %}
