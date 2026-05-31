@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify, request
 from middleware.auth import require_auth
 from models.comment import add_comment, get_comments_by_post, comment_belongs_to_post
+from services.notification_service import notify_post_commented
 
 comments_bp = Blueprint('comments', __name__)
 
@@ -29,6 +30,12 @@ def post_comment(post_id):
         post_id=post_id,
         text=text
     )
+
+    notify_post_commented(
+    actor_user_id=request.user_id,
+    post_id=post_id,
+    comment_id=comment['id']
+    )
     return jsonify(comment), 201
 
 
@@ -52,6 +59,12 @@ def reply_comment(post_id, comment_id):
         post_id=post_id,
         text=text,
         parent_id=comment_id
+    )
+
+    notify_post_commented(
+    actor_user_id=request.user_id,
+    post_id=post_id,
+    comment_id=reply['id']
     )
 
     return jsonify(reply), 201

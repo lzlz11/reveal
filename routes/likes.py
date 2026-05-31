@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify, request
 from middleware.auth import require_auth
 from models.like import toggle_like
+from services.notification_service import notify_post_liked
 
 likes_bp = Blueprint('likes', __name__)
 
@@ -15,4 +16,7 @@ def like(post_id):
     Response: { "liked": true, "like_count": 5 }
     """
     result = toggle_like(user_id=request.user_id, post_id=post_id)
+    if result['liked']:
+        notify_post_liked( actor_user_id=request.user_id, post_id=post_id)
+
     return jsonify(result)

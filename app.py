@@ -5,6 +5,7 @@ from routes.posts import posts_bp
 from routes.likes import likes_bp
 from routes.comments import comments_bp
 from routes.user import users_bp
+from routes.notifications import notifications_bp
 
 app = Flask(__name__)
 
@@ -18,6 +19,7 @@ app.register_blueprint(posts_bp)
 app.register_blueprint(likes_bp)
 app.register_blueprint(comments_bp)
 app.register_blueprint(users_bp)
+app.register_blueprint(notifications_bp)
 
 if __name__ == '__main__':
     app.run(debug=True)

@@ -44,6 +44,11 @@
     .nav-item:hover, .nav-item.active { background: var(--surface); color: var(--text); }
     .nav-item.active { color: var(--accent); }
     .nav-icon { width: 20px; height: 20px; flex-shrink: 0; }
+    .nav-label { flex: 1; }
+    .notification-badge { min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px;
+        background: var(--error); color: white; font-size: 11px; font-weight: 700;
+        display: inline-flex; align-items: center; justify-content: center;
+    }
 
     .feed { padding: 32px 40px; border-right: 1px solid var(--border); }
     .feed-header { font-family: 'DM Serif Display', serif; font-size: 22px; margin-bottom: 28px; }
@@ -266,6 +271,20 @@
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
             </svg>
             New Post
+        </a>
+        <a href="/notifications" class="nav-item">
+            <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M15 17h5l-1.4-1.4A2 2 0 0118 14.2V11a6 6 0 10-12 0v3.2a2 2 0 01-.6 1.4L4 17h5m6 0a3 3 0 01-6 0"/>
+            </svg>
+
+            <span class="nav-label">Notifications</span>
+
+            {% if unread_notification_count and unread_notification_count > 0 %}
+                <span class="notification-badge">
+                    {{ unread_notification_count if unread_notification_count < 100 else '99+' }}
+                </span>
+            {% endif %}
         </a>
         <a href="/profile" class="nav-item">
             <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">

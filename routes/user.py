@@ -12,6 +12,7 @@ from models.follow import (
 )
 from models.user import get_user_by_id, update_profile_picture
 from models.post import get_posts_by_user_id
+from services.notification_service import notify_user_followed
 
 users_bp = Blueprint('users', __name__)
 ALLOWED_IMAGES = {'jpg', 'jpeg', 'png', 'gif', 'webp'}
@@ -48,6 +49,8 @@ def follow(user_id):
         return jsonify({'error': 'You cannot follow yourself.'}), 400
 
     result = toggle_follow(follower_id=request.user_id, following_id=user_id)
+    if result['following']:
+        notify_user_followed( actor_user_id=request.user_id, recipient_user_id=user_id)
     return jsonify(result)
 
 

@@ -1,0 +1,27 @@
+{% extends "layout.html" %}
+{% block title %}Notifications{% endblock %}
+
+{% block content %}
+<div style="max-width: 640px; margin: 80px auto; padding: 24px;">
+    <a href="/home">Back to feed</a>
+    <h1 style="margin: 24px 0;">Notifications</h1>
+
+    {% if notifications %}
+        {% for n in notifications %}
+            <div style="padding: 16px 0; border-bottom: 1px solid var(--border);">
+                {% if n['type'] == 'like' %}
+                    <p><strong>{{ n['actor_username'] }}</strong> liked your post.</p>
+                    <a href="/posts/{{ n['post_id'] }}">View post</a>
+                {% elif n['type'] == 'comment' %}
+                    <p><strong>{{ n['actor_username'] }}</strong> commented on your post.</p>
+                    <a href="/posts/{{ n['post_id'] }}">View post</a>
+                {% elif n['type'] == 'follow' %}
+                    <p><strong>{{ n['actor_username'] }}</strong> started following you.</p>
+                {% endif %}
+            </div>
+        {% endfor %}
+    {% else %}
+        <p style="color: var(--muted);">No new notifications.</p>
+    {% endif %}
+</div>
+{% endblock %}
