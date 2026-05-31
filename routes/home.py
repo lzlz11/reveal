@@ -3,24 +3,10 @@ from middleware.auth import require_auth
 from models.post import get_feed_post_ids, get_posts_by_ids
 from models.like import get_liked_post_ids
 from models.follow import get_users_by_ids, get_followed_ids
+from services.follow_recommendation_service import get_suggested_user_ids
 
 home_bp = Blueprint('home', __name__)
 
-
-def get_suggested_user_ids(current_user_id):
-    """
-    ─────────────────────────────────────────────
-    THIS IS YOUR ALGORITHM SLOT.
-    Replace the body of this function with your
-    friend-recommendation logic.
-
-    Must return a list of user IDs, e.g. [3, 7, 12]
-    The order you return them is the order they appear
-    in the sidebar. get_users_by_ids() fetches the rest.
-    ─────────────────────────────────────────────
-    """
-    # Placeholder: returns empty list until you implement the algorithm
-    return []
 
 
 @home_bp.route('/home')

@@ -2,7 +2,14 @@ import os
 import uuid
 from flask import Blueprint, jsonify, request, render_template, redirect, url_for, current_app
 from middleware.auth import require_auth
-from models.follow import toggle_follow, get_following_users, get_followers_count, get_following_count, is_following
+from models.follow import (
+    toggle_follow,
+    get_following_users,
+    get_followers_users,
+    get_followers_count,
+    get_following_count,
+    is_following,
+)
 from models.user import get_user_by_id, update_profile_picture
 from models.post import get_posts_by_user_id
 
@@ -13,12 +20,14 @@ ALLOWED_IMAGES = {'jpg', 'jpeg', 'png', 'gif', 'webp'}
 @require_auth
 def profile():
     user = get_user_by_id(request.user_id)
+    followers = get_followers_users(request.user_id)
     following = get_following_users(request.user_id)
     posts = get_posts_by_user_id(request.user_id)
 
     return render_template(
         'users/profile.html',
         user=user,
+        followers=followers,
         following=following,
         posts=posts,
         followers_count=get_followers_count(request.user_id),
@@ -59,10 +68,12 @@ def upload_picture():
 
     ext = file.filename.rsplit('.', 1)[-1].lower() if '.' in file.filename else ''
     if ext not in ALLOWED_IMAGES:
+        followers = get_followers_users(request.user_id)
         following = get_following_users(request.user_id)
         return render_template(
             'users/profile.html',
             user=get_user_by_id(request.user_id),
+            followers=followers,
             following=following,
             posts=get_posts_by_user_id(request.user_id),
             followers_count=get_followers_count(request.user_id),
@@ -94,11 +105,13 @@ def public_profile(user_id):
         return "User not found", 404
 
     posts = get_posts_by_user_id(user_id)
+    followers = get_followers_users(user_id)
     following = get_following_users(user_id)
 
     return render_template(
         'users/profile.html',
         user=user,
+        followers=followers,
         following=following,
         posts=posts,
         followers_count=get_followers_count(user_id),
