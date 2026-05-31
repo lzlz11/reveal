@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, request
 from middleware.auth import require_auth
-from models.comment import add_comment, get_comments_by_post, comment_belongs_to_post
+from models.comment import add_comment, get_comments_by_post, comment_belongs_to_post, get_comment_by_id, delete_comment
 from services.notification_service import notify_post_commented
 
 comments_bp = Blueprint('comments', __name__)
@@ -68,3 +68,19 @@ def reply_comment(post_id, comment_id):
     )
 
     return jsonify(reply), 201
+
+#delete comment and all its replies
+@comments_bp.route('/posts/<int:post_id>/comments/<int:comment_id>', methods=['DELETE'])
+@require_auth
+def delete_comment_route(post_id, comment_id):
+    comment = get_comment_by_id(comment_id)
+
+    if not comment or int(comment['post_id']) != int(post_id):
+        return jsonify({'error': 'Comment not found.'}), 404
+
+    if int(comment['user_id']) != int(request.user_id):
+        return jsonify({'error': 'You cannot delete this comment.'}), 403
+
+    delete_comment(comment_id)
+
+    return jsonify({'deleted': True})
