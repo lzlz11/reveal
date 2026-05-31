@@ -96,3 +96,38 @@ def get_followed_ids(user_id):
     cursor = db.cursor()
     cursor.execute("SELECT user2_id FROM follows WHERE user1_id = %s", (user_id,))
     return {row['user2_id'] for row in cursor.fetchall()}
+
+
+def get_followers_count(user_id):
+    db = get_db()
+    cursor = db.cursor()
+    cursor.execute("""
+        SELECT COUNT(*) AS count
+        FROM follows
+        WHERE user2_id = %s
+    """, (user_id,))
+    return cursor.fetchone()['count']
+
+
+def get_following_count(user_id):
+    db = get_db()
+    cursor = db.cursor()
+    cursor.execute("""
+        SELECT COUNT(*) AS count
+        FROM follows
+        WHERE user1_id = %s
+    """, (user_id,))
+    return cursor.fetchone()['count']
+
+
+def get_followers_users(user_id):
+    db = get_db()
+    cursor = db.cursor()
+    cursor.execute("""
+        SELECT u.id, u.name AS username, u.profile_picture_path
+        FROM users u
+        JOIN follows f ON u.id = f.user1_id
+        WHERE f.user2_id = %s
+        ORDER BY u.name ASC
+    """, (user_id,))
+    return cursor.fetchall()

@@ -33,8 +33,9 @@
     }
 
     /* Avatar */
-    .avatar-wrap { position: relative; flex-shrink: 0; cursor: pointer; }
-    .avatar-wrap:hover .avatar-overlay { opacity: 1; }
+    .avatar-wrap { position: relative; flex-shrink: 0; }
+    .avatar-wrap.editable { cursor: pointer; }
+    .avatar-wrap.editable:hover .avatar-overlay { opacity: 1; }
 
     .profile-avatar {
         width: 96px; height: 96px; border-radius: 50%;
@@ -59,7 +60,13 @@
     #picture-input { display: none; }
 
     .profile-info { flex: 1; }
-    .profile-username { font-size: 24px; font-weight: 300; color: var(--text); margin-bottom: 16px; }
+    .profile-username { font-size: 24px; font-weight: 300; color: var(--text); }
+    .profile-top-row { display: flex; align-items: center; gap: 16px; margin-bottom: 16px; }
+    .profile-follow-btn { padding: 7px 18px; border: 1px solid var(--border); border-radius: 8px; color: var(--accent);
+    background: none; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; transition: background 0.2s, color 0.2s, border-color 0.2s;}
+    .profile-follow-btn:hover { background: rgba(232,197,71,0.08); }
+    .profile-follow-btn.following { color: var(--muted); }
+    .profile-follow-btn.following:hover { border-color: var(--error); color: var(--error); }
 
     /* Stats row — posts / followers / following */
     .stats-row { display: flex; gap: 28px; margin-bottom: 16px; }
@@ -68,7 +75,7 @@
         background: none; border: none; padding: 0; cursor: default;
         text-align: center; font-family: 'DM Sans', sans-serif;
     }
-    /* Only following is clickable */
+    /* Followers and following open profile-list modals */
     .stat-btn.clickable { cursor: pointer; }
     .stat-btn.clickable:hover .stat-label { color: var(--accent); }
 
@@ -88,6 +95,7 @@
     .grid-post {
         aspect-ratio: 1; position: relative; overflow: hidden;
         background: var(--surface); cursor: pointer;
+        display: block; color: inherit; text-decoration: none;
     }
     .grid-post img,
     .grid-post video { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.3s; }
@@ -158,7 +166,11 @@
         font-size: 15px; font-weight: 700; color: var(--accent);
         text-transform: uppercase; flex-shrink: 0;
     }
-    .row-username { font-size: 14px; font-weight: 600; color: var(--text); flex: 1; }
+    .row-username {
+        font-size: 14px; font-weight: 600; color: var(--text);
+        flex: 1; text-decoration: none;
+    }
+    .row-username:hover { color: var(--accent); }
 
     .row-unfollow {
         padding: 5px 14px; border: 1px solid var(--border); border-radius: 8px;
@@ -193,7 +205,8 @@
     <!-- Profile header -->
     <div class="profile-header">
 
-        <div class="avatar-wrap" onclick="document.getElementById('picture-input').click()">
+        <div class="avatar-wrap {% if is_own_profile %}editable{% endif %}"
+             {% if is_own_profile %}onclick="document.getElementById('picture-input').click()"{% endif %}>
             {% if user['profile_picture_path'] %}
                 <img class="profile-avatar" id="avatar-preview"
                      src="{{ url_for('static', filename=user['profile_picture_path']) }}"
@@ -201,33 +214,46 @@
             {% else %}
                 <div class="avatar-letter" id="avatar-letter">{{ user['name'][0] }}</div>
             {% endif %}
-            <div class="avatar-overlay">
-                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                        d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/>
-                </svg>
-                <span>Change photo</span>
-            </div>
+            {% if is_own_profile %}
+                <div class="avatar-overlay">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/>
+                    </svg>
+                    <span>Change photo</span>
+                </div>
+            {% endif %}
         </div>
 
-        <form id="picture-form" method="POST" action="/profile/picture"
-              enctype="multipart/form-data" style="display:none">
-            <input type="file" id="picture-input" name="picture"
-                   accept="image/jpeg,image/png,image/gif,image/webp">
-        </form>
+        {% if is_own_profile %}
+            <form id="picture-form" method="POST" action="/profile/picture"
+                  enctype="multipart/form-data" style="display:none">
+                <input type="file" id="picture-input" name="picture"
+                       accept="image/jpeg,image/png,image/gif,image/webp">
+            </form>
+        {% endif %}
 
         <div class="profile-info">
-            <div class="profile-username">{{ user['name'] }}</div>
+            <div class="profile-top-row">
+                <div class="profile-username">{{ user['name'] }}</div>
+
+                {% if not is_own_profile %}
+                    <button class="profile-follow-btn {% if is_following_user %}following{% endif %}"
+                            data-user-id="{{ user['id'] }}">
+                        {{ 'Unfollow' if is_following_user else 'Follow' }}
+                    </button>
+                {% endif %}
+            </div>
 
             <div class="stats-row">
                 <div class="stat-btn">
                     <span class="stat-number">{{ posts | length }}</span>
                     <span class="stat-label">posts</span>
                 </div>
-                <div class="stat-btn">
-                    <span class="stat-number">{{ followers_count }}</span>
+                <button class="stat-btn clickable" id="open-followers-modal">
+                    <span class="stat-number" id="followers-count-display">{{ followers_count }}</span>
                     <span class="stat-label">followers</span>
-                </div>
+                </button>
                 <!-- Clicking "following" opens the modal -->
                 <button class="stat-btn clickable" id="open-following-modal">
                     <span class="stat-number" id="following-count-display">{{ following_count }}</span>
@@ -249,7 +275,7 @@
         {% if posts %}
         <div class="posts-grid">
             {% for post in posts %}
-            <div class="grid-post">
+            <a class="grid-post" href="/posts/{{ post['id'] }}">
                 {% if post['media_type'] == 'image' %}
                     <img src="{{ url_for('static', filename=post['media_path']) }}"
                          alt="Post" loading="lazy">
@@ -269,7 +295,7 @@
                         {{ post['comment_count'] }}
                     </div>
                 </div>
-            </div>
+            </a>
             {% endfor %}
         </div>
 
@@ -286,6 +312,40 @@
 
 </div>
 
+<!-- Followers modal -->
+<div class="modal-backdrop" id="followers-modal">
+    <div class="modal">
+        <div class="modal-header">
+            <span class="modal-title">Followers</span>
+            <button class="modal-close" id="close-followers-modal">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+        <div class="modal-body" id="followers-modal-body">
+            {% if followers %}
+                {% for u in followers %}
+                <div class="following-row">
+                    {% if u['profile_picture_path'] %}
+                        <img class="row-avatar"
+                             src="{{ url_for('static', filename=u['profile_picture_path']) }}"
+                             alt="{{ u['username'] }}">
+                    {% else %}
+                        <div class="row-letter">{{ u['username'][0] }}</div>
+                    {% endif %}
+                    <a class="row-username" href="/users/{{ u['id'] }}">{{ u['username'] }}</a>
+                </div>
+                {% endfor %}
+            {% else %}
+                <p class="modal-empty">
+                    {{ 'You do not have any followers yet.' if is_own_profile else 'This user does not have any followers yet.' }}
+                </p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
 <!-- Following modal -->
 <div class="modal-backdrop" id="following-modal">
     <div class="modal">
@@ -297,7 +357,7 @@
                 </svg>
             </button>
         </div>
-        <div class="modal-body" id="modal-body">
+        <div class="modal-body" id="following-modal-body">
             {% if following %}
                 {% for u in following %}
                 <div class="following-row" id="modal-row-{{ u['id'] }}">
@@ -308,16 +368,20 @@
                     {% else %}
                         <div class="row-letter">{{ u['username'][0] }}</div>
                     {% endif %}
-                    <span class="row-username">{{ u['username'] }}</span>
-                    <button class="row-unfollow"
-                            data-user-id="{{ u['id'] }}"
-                            data-username="{{ u['username'] }}">
-                        Unfollow
-                    </button>
+                    <a class="row-username" href="/users/{{ u['id'] }}">{{ u['username'] }}</a>
+                    {% if is_own_profile %}
+                        <button class="row-unfollow"
+                                data-user-id="{{ u['id'] }}"
+                                data-username="{{ u['username'] }}">
+                            Unfollow
+                        </button>
+                    {% endif %}
                 </div>
                 {% endfor %}
             {% else %}
-                <p class="modal-empty">You are not following anyone yet.</p>
+                <p class="modal-empty">
+                    {{ 'You are not following anyone yet.' if is_own_profile else 'This user is not following anyone yet.' }}
+                </p>
             {% endif %}
         </div>
     </div>
@@ -325,44 +389,57 @@
 
 <script>
 // ── Profile picture ──────────────────────────────────────
-document.getElementById('picture-input').addEventListener('change', () => {
-    const file = document.getElementById('picture-input').files[0];
-    if (!file) return;
+const pictureInput = document.getElementById('picture-input');
 
-    const url      = URL.createObjectURL(file);
-    const existing = document.getElementById('avatar-preview');
-    const letter   = document.getElementById('avatar-letter');
+if (pictureInput) {
+    pictureInput.addEventListener('change', () => {
+        const file = pictureInput.files[0];
+        if (!file) return;
 
-    if (existing) {
-        existing.src = url;
-    } else if (letter) {
-        const img = document.createElement('img');
-        img.className = 'profile-avatar';
-        img.id = 'avatar-preview';
-        img.src = url;
-        letter.replaceWith(img);
-    }
+        const url      = URL.createObjectURL(file);
+        const existing = document.getElementById('avatar-preview');
+        const letter   = document.getElementById('avatar-letter');
 
-    document.getElementById('picture-form').submit();
-});
+        if (existing) {
+            existing.src = url;
+        } else if (letter) {
+            const img = document.createElement('img');
+            img.className = 'profile-avatar';
+            img.id = 'avatar-preview';
+            img.src = url;
+            letter.replaceWith(img);
+        }
+
+        document.getElementById('picture-form').submit();
+    });
+}
 
 
-// ── Following modal ──────────────────────────────────────
-const modal   = document.getElementById('following-modal');
-const openBtn = document.getElementById('open-following-modal');
-const closeBtn = document.getElementById('close-following-modal');
+// ── Profile list modals ──────────────────────────────────
+function setupModal(modalId, openButtonId, closeButtonId) {
+    const modal = document.getElementById(modalId);
+    const openButton = document.getElementById(openButtonId);
+    const closeButton = document.getElementById(closeButtonId);
 
-openBtn.addEventListener('click', () => modal.classList.add('open'));
-closeBtn.addEventListener('click', () => modal.classList.remove('open'));
+    if (!modal || !openButton || !closeButton) return;
 
-// Close when clicking the backdrop
-modal.addEventListener('click', (e) => {
-    if (e.target === modal) modal.classList.remove('open');
-});
+    openButton.addEventListener('click', () => modal.classList.add('open'));
+    closeButton.addEventListener('click', () => modal.classList.remove('open'));
 
-// Close on Escape key
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) modal.classList.remove('open');
+    });
+}
+
+setupModal('followers-modal', 'open-followers-modal', 'close-followers-modal');
+setupModal('following-modal', 'open-following-modal', 'close-following-modal');
+
 document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') modal.classList.remove('open');
+    if (e.key === 'Escape') {
+        document.querySelectorAll('.modal-backdrop.open').forEach(modal => {
+            modal.classList.remove('open');
+        });
+    }
 });
 
 
@@ -392,7 +469,7 @@ document.querySelectorAll('.row-unfollow').forEach(btn => {
                     countEl.textContent = newCount;
 
                     // Show empty message if list is now empty
-                    const body = document.getElementById('modal-body');
+                    const body = document.getElementById('following-modal-body');
                     if (body.children.length === 0) {
                         body.innerHTML = '<p class="modal-empty">You are not following anyone yet.</p>';
                     }
@@ -400,6 +477,28 @@ document.querySelectorAll('.row-unfollow').forEach(btn => {
             }
         } catch {
             console.error('Unfollow failed');
+        }
+    });
+});
+
+document.querySelectorAll('.profile-follow-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+        const userId = btn.dataset.userId;
+
+        try {
+            const res = await fetch(`/users/${userId}/follow`, { method: 'POST' });
+            const data = await res.json();
+
+            btn.classList.toggle('following', data.following);
+            btn.textContent = data.following ? 'Unfollow' : 'Follow';
+
+            const followersEl = document.getElementById('followers-count-display');
+            if (followersEl) {
+                const current = parseInt(followersEl.textContent);
+                followersEl.textContent = current + (data.following ? 1 : -1);
+            }
+        } catch {
+            console.error('Follow failed');
         }
     });
 });

@@ -48,7 +48,7 @@ def require_auth(f):
             return redirect(url_for('auth.login'))
 
         # Inject user info directly into the request object
-        request.user_id = payload['user_id']
+        request.user_id = int(payload['user_id'])
         request.username = payload['username']
 
         return f(*args, **kwargs)

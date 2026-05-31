@@ -2,8 +2,7 @@ import os
 import uuid
 from flask import Blueprint, request, render_template, redirect, url_for, current_app
 from middleware.auth import require_auth
-from models.post import create_post
-
+from models.post import create_post, get_post_by_id, update_post, delete_post
 posts_bp = Blueprint('posts', __name__)
 
 # Allowed file extensions per media type
@@ -47,7 +46,7 @@ def create():
     unique_name = f"{uuid.uuid4().hex}.{extension}"
     relative_path = f"uploads/{subfolder}/{unique_name}"
     absolute_path = os.path.join(current_app.static_folder, relative_path)
-
+    os.makedirs(os.path.dirname(absolute_path), exist_ok=True)
     file.save(absolute_path)
 
     create_post(
@@ -58,3 +57,54 @@ def create():
     )
 
     return redirect(url_for('home.home'))
+
+
+@posts_bp.route('/posts/<int:post_id>')
+@require_auth
+def detail(post_id):
+    post = get_post_by_id(post_id)
+
+    if not post:
+        return "Post not found", 404
+
+    return render_template(
+        'posts/detail.html',
+        post=post,
+        current_user_id=request.user_id
+    )
+
+
+@posts_bp.route('/posts/<int:post_id>/edit', methods=['GET', 'POST'])
+@require_auth
+def edit(post_id):
+    post = get_post_by_id(post_id)
+
+    if not post:
+        return "Post not found", 404
+
+    if int(post['user_id']) != int(request.user_id):
+        return "You cannot edit this post", 403
+
+    if request.method == 'GET':
+        return render_template('posts/edit.html', post=post)
+
+    caption = request.form.get('caption', '').strip()
+    update_post(post_id, request.user_id, caption)
+
+    return redirect(url_for('posts.detail', post_id=post_id))
+
+
+@posts_bp.route('/posts/<int:post_id>/delete', methods=['POST'])
+@require_auth
+def delete(post_id):
+    post = get_post_by_id(post_id)
+
+    if not post:
+        return "Post not found", 404
+
+    if int(post['user_id']) != int(request.user_id):
+        return "You cannot delete this post", 403
+
+    delete_post(post_id, request.user_id)
+
+    return redirect(url_for('users.profile'))

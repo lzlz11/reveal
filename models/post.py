@@ -92,3 +92,74 @@ def get_posts_by_ids(post_ids):
     # Re-order rows to match the algorithm's original order
     order = {post_id: index for index, post_id in enumerate(post_ids)}
     return sorted(rows, key=lambda row: order[row['id']])
+
+
+def get_post_by_id(post_id):
+    db = get_db()
+    cursor = db.cursor()
+    cursor.execute("""
+        SELECT
+            p.id,
+            p.caption,
+            p.media_path,
+            p.media_type,
+            p.created_at,
+            p.user_id,
+            u.name AS username,
+            u.profile_picture_path,
+            COUNT(DISTINCT l.id) AS like_count,
+            COUNT(DISTINCT c.id) AS comment_count
+        FROM posts p
+        JOIN users u ON p.user_id = u.id
+        LEFT JOIN likes l ON p.id = l.post_id
+        LEFT JOIN comments c ON p.id = c.post_id
+        WHERE p.id = %s
+        GROUP BY p.id, u.name, u.profile_picture_path
+    """, (post_id,))
+    return cursor.fetchone()
+
+
+def get_posts_by_user_id(user_id):
+    db = get_db()
+    cursor = db.cursor()
+    cursor.execute("""
+        SELECT
+            p.id,
+            p.caption,
+            p.media_path,
+            p.media_type,
+            p.created_at,
+            p.user_id,
+            COUNT(DISTINCT l.id) AS like_count,
+            COUNT(DISTINCT c.id) AS comment_count
+        FROM posts p
+        LEFT JOIN likes l ON p.id = l.post_id
+        LEFT JOIN comments c ON p.id = c.post_id
+        WHERE p.user_id = %s
+        GROUP BY p.id
+        ORDER BY p.created_at DESC
+    """, (user_id,))
+    return cursor.fetchall()
+
+
+def update_post(post_id, user_id, caption):
+    db = get_db()
+    cursor = db.cursor()
+    cursor.execute("""
+        UPDATE posts
+        SET caption = %s
+        WHERE id = %s AND user_id = %s
+    """, (caption, post_id, user_id))
+    db.commit()
+    return cursor.rowcount > 0
+
+
+def delete_post(post_id, user_id):
+    db = get_db()
+    cursor = db.cursor()
+    cursor.execute("""
+        DELETE FROM posts
+        WHERE id = %s AND user_id = %s
+    """, (post_id, user_id))
+    db.commit()
+    return cursor.rowcount > 0

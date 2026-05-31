@@ -11,8 +11,6 @@ connection = psycopg2.connect(host=os.getenv("DB_HOST"),
 
 
 cursor = connection.cursor()
-
-
 # ======================
 # USERS
 # ======================
@@ -67,7 +65,7 @@ cursor.execute("""
 ALTER TABLE comments
 ADD COLUMN IF NOT EXISTS text TEXT,
 ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-ADD COLUMN IF NOT EXISTS comment_parent_id INTEGER;
+ADD COLUMN IF NOT EXISTS comment_parent_id INTEGER REFERENCES comments(id) ON DELETE CASCADE;
 """)
 
 # ======================
@@ -94,10 +92,26 @@ ADD COLUMN IF NOT EXISTS timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
 cursor.execute("""
 CREATE TABLE IF NOT EXISTS follows (
     user1_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    user2_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE
+    user2_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (user1_id, user2_id),
+    CHECK (user1_id <> user2_id)
 );
 """)
 
+#Notifacations
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS notifications (
+    id SERIAL PRIMARY KEY,
+    recipient_user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    actor_user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    type VARCHAR(50) NOT NULL,
+    post_id INTEGER REFERENCES posts(id) ON DELETE CASCADE,
+    comment_id INTEGER REFERENCES comments(id) ON DELETE CASCADE,
+    is_read BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+""")
 
 connection.commit()
 
