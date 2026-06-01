@@ -1,5 +1,5 @@
 {% extends "layout.html" %}
-{% block title %}Home — Pixly{% endblock %}
+{% block title %}Home — Reveal {% endblock %}
 
 {% block head %}
 <style>
@@ -261,7 +261,7 @@
 
 {% block content %}
 <nav class="navbar">
-    <div class="nav-logo">Pixly</div>
+    <div class="nav-logo">Reveal</div>
     <div class="nav-right">
         <span class="nav-user">Logged in as <span>{{ username }}</span></span>
         <a href="/logout"><button class="logout-btn">Log out</button></a>
@@ -278,7 +278,7 @@
             </svg>
             Home
         </a>
-        <a href="#" class="nav-item">
+        <a href="/search" class="nav-item">
             <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <circle cx="11" cy="11" r="8"/><path stroke-linecap="round" d="M21 21l-4.35-4.35"/>
             </svg>
