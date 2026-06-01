@@ -1,10 +1,11 @@
 from flask import Blueprint, render_template, request
 from middleware.auth import require_auth
-from models.post import get_feed_post_ids, get_posts_by_ids
+from models.post import get_posts_by_ids
 from models.like import get_liked_post_ids
 from models.follow import get_users_by_ids, get_followed_ids
 from services.follow_recommendation_service import get_suggested_user_ids
 from models.notification import get_unread_notification_count
+from services.post_ranking_service import get_ranked_feed_post_ids
 
 home_bp = Blueprint('home', __name__)
 
@@ -14,7 +15,7 @@ home_bp = Blueprint('home', __name__)
 @require_auth
 def home():
     # Posts
-    post_ids  = get_feed_post_ids(request.user_id)
+    post_ids = get_ranked_feed_post_ids(request.user_id)
     posts     = get_posts_by_ids(post_ids)
     liked_ids = get_liked_post_ids(request.user_id, post_ids)
 

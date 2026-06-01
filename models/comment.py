@@ -26,6 +26,7 @@ def add_comment(user_id, post_id, text, parent_id=None):
         'id':         new_comment['id'],
         'text':       new_comment['text'],
         'username':   user['name'],
+        'user_id': user_id,
         'created_at': new_comment['created_at'].strftime('%B %d, %Y · %H:%M'),
         'comment_parent_id': new_comment['comment_parent_id'],
         'replies': []
@@ -45,6 +46,7 @@ def get_comments_by_post(post_id):
             c.text,
             c.created_at,
             c.comment_parent_id,
+            c.user_id,
             u.name AS username
         FROM comments c
         JOIN users u ON c.user_id = u.id
@@ -61,6 +63,7 @@ def get_comments_by_post(post_id):
             'text': row['text'],
             'username': row['username'],
             'created_at': row['created_at'].strftime('%B %d, %Y · %H:%M'),
+            'user_id': row['user_id'],
             'comment_parent_id': row['comment_parent_id']
         }
         for row in rows
@@ -77,3 +80,30 @@ def comment_belongs_to_post(comment_id, post_id):
         WHERE id = %s AND post_id = %s
     """, (comment_id, post_id))
     return cursor.fetchone() is not None
+
+
+#delete comment and all its replies
+def get_comment_by_id(comment_id):
+    db = get_db()
+    cursor = db.cursor()
+
+    cursor.execute("""
+        SELECT id, post_id, user_id, comment_parent_id
+        FROM comments
+        WHERE id = %s
+    """, (comment_id,))
+
+    return cursor.fetchone()
+
+
+def delete_comment(comment_id):
+    db = get_db()
+    cursor = db.cursor()
+
+    cursor.execute("""
+        DELETE FROM comments
+        WHERE id = %s
+    """, (comment_id,))
+
+    db.commit()
+    return cursor.rowcount > 0
